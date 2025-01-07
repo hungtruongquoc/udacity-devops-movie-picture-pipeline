@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./starter/backend
+        working-directory: ./starter/backend  # Updated path to match your project structure
 
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-pipenv-
 
       - name: Install dependencies
-        run: pipenv install
+        run: pipenv install --dev
 
       - name: Run linting
         run: pipenv run lint
