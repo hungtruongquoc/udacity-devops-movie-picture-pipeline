@@ -9,7 +9,10 @@ terraform init
 terraform apply -auto-approve
 
 # Store IAM outputs
-EKS_CLUSTER_ROLE_ARN=$(terraform output -raw eks_cluster_role_arn)
-NODE_GROUP_ROLE_ARN=$(terraform output -raw node_group_role_arn)
 GITHUB_ACCESS_KEY=$(terraform output -raw github_action_access_key)
 GITHUB_SECRET_KEY=$(terraform output -raw github_action_secret_key)
+
+echo "Deployment complete! Use these values for GitHub Actions secrets:"
+echo "AWS_ACCESS_KEY_ID: ${GITHUB_ACCESS_KEY}"
+echo "AWS_SECRET_ACCESS_KEY: ${GITHUB_SECRET_KEY}"
+echo "AWS_REGION: ${REGION}"
