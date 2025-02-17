@@ -1,4 +1,6 @@
-# iam/main.tf
+###################
+# Variable Configuration
+###################
 
 variable "environment_name" {
   description = "Name prefix for all resources"
@@ -9,6 +11,10 @@ variable "environment_name" {
 provider "aws" {
   region = "us-east-1"
 }
+
+###################
+# IAM Roles for EKS Cluster
+###################
 
 # EKS Cluster Role
 resource "aws_iam_role" "eks_cluster" {
@@ -38,6 +44,10 @@ resource "aws_iam_role_policy_attachment" "eks_service" {
   role       = aws_iam_role.eks_cluster.name
 }
 
+###################
+# IAM Roles for EKS Worker Nodes
+###################
+
 # Node Group Role
 resource "aws_iam_role" "node_group" {
   name = "${var.environment_name}-node-group"
@@ -56,6 +66,7 @@ resource "aws_iam_role" "node_group" {
   })
 }
 
+# Attach EKS Node Group Policies
 resource "aws_iam_role_policy_attachment" "node_group_policy" {
   role       = aws_iam_role.node_group.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -66,12 +77,22 @@ resource "aws_iam_role_policy_attachment" "cni_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
+# **✅ Change to PowerUser (Allows Pushing & Pulling to/from ECR)**
 resource "aws_iam_role_policy_attachment" "ecr_policy" {
   role       = aws_iam_role.node_group.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
 
-# GitHub Actions User
+# **✅ Allow EKS nodes to pull AMI images from SSM**
+resource "aws_iam_role_policy_attachment" "ssm_policy" {
+  role       = aws_iam_role.node_group.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+###################
+# IAM User for GitHub Actions (Deploying Images to ECR)
+###################
+
 resource "aws_iam_user" "github_action_user" {
   name = "${var.environment_name}-github-actions"
 }
@@ -93,7 +114,8 @@ resource "aws_iam_user_policy" "github_action_user_permission" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:PutImage",
+          "ecr:PutImage",  # ✅ Allows pushing images to ECR
+          "ecr:CreateRepository",  # ✅ Allows creating new ECR repositories
           "eks:DescribeCluster",
           "eks:ListClusters"
         ]
@@ -107,7 +129,10 @@ resource "aws_iam_access_key" "github_action_user" {
   user = aws_iam_user.github_action_user.name
 }
 
+###################
 # Outputs
+###################
+
 output "eks_cluster_role_arn" {
   value = aws_iam_role.eks_cluster.arn
 }
