@@ -6,8 +6,6 @@ on:
       - main  # Trigger on push to main branch
   workflow_dispatch:  # Allows manual execution
 
-environment: prod
-
 jobs:
   lint:
     name: Lint
@@ -103,13 +101,13 @@ jobs:
     name: Push Docker Image to ECR
     needs: build  # Runs only if build succeeds
     runs-on: ubuntu-latest
-
+    environment: prod
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -128,13 +126,13 @@ jobs:
     name: Deploy to EKS
     needs: push-to-ecr  # Runs only if ECR push succeeds
     runs-on: ubuntu-latest
-
+    environment: prod
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

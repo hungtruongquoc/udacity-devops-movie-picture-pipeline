@@ -71,9 +71,10 @@ jobs:
         run: npm run test
 
   build:
-    name: Build
-    needs: [lint, test]  # This job will only run after lint and test jobs succeed
+    name: Build Docker Image
+    needs: [ lint, test ]  # This job runs only after linting & testing succeed
     runs-on: ubuntu-latest
+    environment: prod
     defaults:
       run:
         working-directory: ./starter/frontend
@@ -82,22 +83,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('frontend/package-lock.json') }}
-          restore-keys: npm-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: docker build -t frontend-app .
+      - name: Build Docker image
+        run: |
+          docker build -t frontend-app:latest --build-arg REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} .
