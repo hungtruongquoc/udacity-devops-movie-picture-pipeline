@@ -108,6 +108,26 @@ resource "aws_ecr_repository" "ecr_app" {
   }
 }
 
+resource "aws_ecr_repository" "ecr_app_backend" {
+  name                 = "${var.environment_name}-app/backend"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
+resource "aws_ecr_repository" "ecr_app_frontend" {
+  name                 = "${var.environment_name}-app/frontend"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
 ###################
 # Fetch EKS Recommended AMI Version
 ###################
@@ -188,4 +208,12 @@ output "public_route_table_id" { value = aws_route_table.public.id }
 
 output "ecr_repository_url" {
   value = aws_ecr_repository.ecr_app.repository_url
+}
+
+output "ecr_repository_url_frontend" {
+  value = aws_ecr_repository.ecr_app_frontend.repository_url
+}
+
+output "ecr_repository_url_backend" {
+  value = aws_ecr_repository.ecr_app_backend.repository_url
 }
