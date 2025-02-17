@@ -3,10 +3,8 @@ name: Frontend Continuous Deployment
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
-  workflow_dispatch:  # Allows manual execution
-
-environment: prod
+      - main
+  workflow_dispatch:
 
 jobs:
   lint:
@@ -26,6 +24,13 @@ jobs:
           node-version: '16'
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: npm-
 
       - name: Install dependencies
         run: npm ci
@@ -51,6 +56,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: npm-
+
       - name: Install dependencies
         run: npm ci
 
@@ -59,8 +71,9 @@ jobs:
 
   build:
     name: Build Docker Image
-    needs: [lint, test]  # Runs only if lint & test pass
+    needs: [lint, test]  # This job runs only after linting & testing succeed
     runs-on: ubuntu-latest
+    environment: prod
     defaults:
       run:
         working-directory: ./starter/frontend
@@ -71,15 +84,13 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build \
-            --build-arg REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} \
-            -t frontend-app .
+          docker build -t frontend-app:latest --build-arg REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} .
 
   push-to-ecr:
     name: Push Docker Image to ECR
     needs: build  # Runs only if build succeeds
     runs-on: ubuntu-latest
-
+    environment: prod
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -97,20 +108,20 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
-          docker tag frontend-app ${{ secrets.ECR_REPOSITORY_URL }}:latest
+          docker tag frontend-app:latest ${{ secrets.ECR_REPOSITORY_URL }}:latest
           docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
 
   deploy:
     name: Deploy to EKS
     needs: push-to-ecr  # Runs only if ECR push succeeds
     runs-on: ubuntu-latest
-
+    environment: prod
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -128,4 +139,4 @@ jobs:
 
       - name: Verify Deployment
         run: |
-          kubectl get pods --namespace=${{ vars.EKS_NAMESPACE }}
+          kubectl get pods --namespace=${{ env.EKS_NAMESPACE }}
