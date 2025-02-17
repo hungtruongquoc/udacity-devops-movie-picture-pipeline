@@ -95,7 +95,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t mp-backend:latest .
+          docker build -t backend-app:latest .
+          docker images
 
       - name: Save Docker image
         run: docker save -o /tmp/backend-app.tar backend-app:latest
