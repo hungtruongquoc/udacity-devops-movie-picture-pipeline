@@ -146,6 +146,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Check AWS Authentication
+        run: aws sts get-caller-identity
+
       - name: Setup kubectl with kubeconfig
         run: |
           mkdir -p $HOME/.kube  # Ensure the directory exists
@@ -157,9 +160,15 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
 
+      - name: Debug Kubeconfig
+        run: |
+          export KUBECONFIG=$HOME/.kube/config
+          kubectl config view
+          kubectl cluster-info
+
       - name: Ensure Namespace Exists
         run: |
-          kubectl get namespace ${{ vars.EKS_NAMESPACE }} || kubectl create namespace ${{ vars.EKS_NAMESPACE }}
+          kubectl get namespace ${{ vars.EKS_NAMESPACE }}
 
       - name: Test Kubernetes Connection
         run: |
