@@ -148,6 +148,7 @@ jobs:
 
       - name: Setup kubectl with kubeconfig
         run: |
+          mkdir -p $HOME/.kube  # Ensure the directory exists
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
           export KUBECONFIG=$HOME/.kube/config
           chmod 600 $HOME/.kube/config
