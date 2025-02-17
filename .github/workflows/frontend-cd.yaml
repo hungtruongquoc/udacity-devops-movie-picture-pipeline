@@ -160,11 +160,11 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-      - name: Debug Kubeconfig
-        run: |
-          export KUBECONFIG=$HOME/.kube/config
-          kubectl config view
-          kubectl cluster-info
+#      - name: Debug Kubeconfig
+#        run: |
+#          export KUBECONFIG=$HOME/.kube/config
+#          kubectl config view
+#          kubectl cluster-info
 
       - name: Ensure Namespace Exists
         run: |
