@@ -127,8 +127,8 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
-          docker tag frontend-app:latest ${{ secrets.ECR_REPOSITORY_URL }}:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
+          docker tag frontend-app:latest ${{ secrets.ECR_REPOSITORY_URL }}/frontend:latest
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}/frontend:latest
 
   deploy:
     name: Deploy to EKS
@@ -153,7 +153,7 @@ jobs:
 
       - name: Deploy to EKS
         run: |
-          kubectl apply -f k8s/frontend-deployment.yaml --namespace=${{ vars.EKS_NAMESPACE }}
+          kubectl apply -f k8s/deployment.yaml --namespace=${{ vars.EKS_NAMESPACE }}
           kubectl rollout status deployment/frontend --namespace=${{ vars.EKS_NAMESPACE }}
 
       - name: Verify Deployment
