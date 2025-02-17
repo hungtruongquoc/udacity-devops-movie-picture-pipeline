@@ -138,10 +138,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Setup kubectl
+      - name: Setup kubectl with kubeconfig
         run: |
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
-          export KUBECONFIG=kubeconfig
+          mkdir -p $HOME/.kube  # Ensure the directory exists
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          export KUBECONFIG=$HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       - name: Deploy to EKS
         run: |
