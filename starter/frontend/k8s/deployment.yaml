@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: frontend
+          image:  723567309652.dkr.ecr.us-east-1.amazonaws.com/movie-pipeline-app/frontend:latest
           ports:
             - containerPort: 3000
