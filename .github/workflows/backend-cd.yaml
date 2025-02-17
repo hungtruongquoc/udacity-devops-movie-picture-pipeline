@@ -138,7 +138,7 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
-          docker tag mp-backend:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+          docker tag backend-app:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
           docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
 
   deploy:
