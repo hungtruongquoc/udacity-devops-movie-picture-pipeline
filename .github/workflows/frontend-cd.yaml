@@ -6,6 +6,8 @@ on:
       - main  # Trigger on push to main branch
   workflow_dispatch:  # Allows manual execution
 
+environment: prod
+
 jobs:
   lint:
     name: Lint
