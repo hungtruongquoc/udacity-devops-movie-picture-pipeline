@@ -146,10 +146,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Setup kubectl
+      - name: Setup kubectl with kubeconfig
         run: |
-          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > kubeconfig
-          export KUBECONFIG=kubeconfig
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          export KUBECONFIG=$HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Update kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+
+      - name: Ensure Namespace Exists
+        run: |
+          kubectl get namespace ${{ vars.EKS_NAMESPACE }} || kubectl create namespace ${{ vars.EKS_NAMESPACE }}
+
+      - name: Test Kubernetes Connection
+        run: |
+          export KUBECONFIG=$HOME/.kube/config
+          kubectl get nodes --namespace=${{ vars.EKS_NAMESPACE }}
 
       - name: Deploy to EKS
         run: |
@@ -158,4 +172,4 @@ jobs:
 
       - name: Verify Deployment
         run: |
-          kubectl get pods --namespace=${{ env.EKS_NAMESPACE }}
+          kubectl get pods --namespace=${{ vars.EKS_NAMESPACE }}
