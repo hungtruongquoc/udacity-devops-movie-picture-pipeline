@@ -127,8 +127,8 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
-          docker tag frontend-app:latest ${{ secrets.ECR_REPOSITORY_URL_FRONTEND }}/frontend:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URL_FRONTEND }}/frontend:latest
+          docker tag frontend-app:latest ${{ secrets.ECR_REPO_URL_FRONTEND }}/frontend:latest
+          docker push ${{ secrets.ECR_REPO_URL_FRONTEND }}/frontend:latest
 
   deploy:
     name: Deploy to EKS
