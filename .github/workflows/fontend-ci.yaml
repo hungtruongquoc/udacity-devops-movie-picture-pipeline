@@ -74,6 +74,7 @@ jobs:
     name: Build Application
     needs: [lint, test]  # This job runs only after linting & testing succeed
     runs-on: ubuntu-latest
+    environment: prod
     defaults:
       run:
         working-directory: ./starter/frontend
