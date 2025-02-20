@@ -74,6 +74,7 @@ jobs:
     name: Build Application
     needs: [lint, test]  # This job runs only after linting & testing succeed
     runs-on: ubuntu-latest
+    environment: prod
     defaults:
       run:
         working-directory: ./starter/frontend
@@ -101,3 +102,8 @@ jobs:
 
       - name: Run tests
         run: npm run test
+
+      - name: Build Docker image
+        run: |
+          docker build -t frontend-app:latest --build-arg REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} .
+          docker images
