@@ -5,6 +5,9 @@ on:
   pull_request:
     branches:
       - main  # Only run on pull requests against main branch
+    paths:
+      - 'starter/frontend/**'  # Only trigger when files in frontend folder change
+      - '.github/workflows/frontend-cd.yml'  # Include the workflow file itself
   workflow_dispatch:  # Allows manual triggering
 
 jobs:

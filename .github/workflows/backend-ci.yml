@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'starter/backend/**'  # Only trigger when files in backend folder change
+      - '.github/workflows/backend-cd.yml'
   workflow_dispatch:
 
 jobs:
