@@ -133,11 +133,16 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
+          # Generate unique tag using GitHub SHA
+          IMAGE_TAG=${GITHUB_SHA::7}
+          # Tag with both unique tag and latest
+          docker tag frontend-app:latest ${{ secrets.ECR_REPO_URL_FRONTEND }}:${IMAGE_TAG}
           docker tag frontend-app:latest ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest
+          # Push both tags
+          docker push ${{ secrets.ECR_REPO_URL_FRONTEND }}:${IMAGE_TAG}
           docker push ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest
-          # Add echo statements to show what's happening
-          echo "Tagged frontend-app:latest as ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest"
-          echo "Pushed to ECR"
+          # Export tag for use in deployment
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
 
 #      - name: Verify ECR Push
 #        run: |
@@ -185,15 +190,17 @@ jobs:
 
       - name: Deploy to EKS
         run: |
+          # First apply the base configurations
           kubectl apply -f ./starter/frontend/k8s/deployment.yaml --namespace=${{ vars.EKS_NAMESPACE }}
           kubectl apply -f ./starter/frontend/k8s/service.yaml --namespace=${{ vars.EKS_NAMESPACE }}
-          kubectl rollout status deployment/frontend --namespace=${{ vars.EKS_NAMESPACE }}
           
-          # Check pod image
-          echo "Checking pod image:"
-          kubectl get pods -n ${{ vars.EKS_NAMESPACE }} -l app=frontend -o jsonpath='{.items[*].spec.containers[*].image}'
+          # Then update the image tag
+          IMAGE_TAG=${GITHUB_SHA::7}
+          kubectl set image deployment/frontend frontend=${{ secrets.ECR_REPO_URL_FRONTEND }}:${IMAGE_TAG} -n ${{ vars.EKS_NAMESPACE }}
           
-          kubectl rollout status deployment/frontend --namespace=${{ vars.EKS_NAMESPACE }}
+          # Force rollout and verify
+          kubectl rollout restart deployment frontend -n ${{ vars.EKS_NAMESPACE }}
+          kubectl rollout status deployment/frontend -n ${{ vars.EKS_NAMESPACE }}
 
       - name: Verify Deployment
         run: |
