@@ -139,10 +139,10 @@ jobs:
           echo "Tagged frontend-app:latest as ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest"
           echo "Pushed to ECR"
 
-      - name: Verify ECR Push
-        run: |
-          echo "Listing images in ECR repository:"
-          aws ecr list-images --repository-name $(echo ${{ secrets.ECR_REPO_URL_FRONTEND }} | cut -d'/' -f2)
+#      - name: Verify ECR Push
+#        run: |
+#          echo "Listing images in ECR repository:"
+#          aws ecr list-images --repository-name $(echo ${{ secrets.ECR_REPO_URL_FRONTEND }} | cut -d'/' -f2)
 
   deploy:
     name: Deploy to EKS
