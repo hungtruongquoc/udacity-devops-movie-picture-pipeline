@@ -125,10 +125,24 @@ jobs:
       - name: Load Docker image
         run: docker load -i /tmp/frontend-app.tar
 
+      - name: Debug Docker Images Before Push
+        run: |
+          echo "Local Docker images:"
+          docker images
+          echo "Target ECR URL: ${{ secrets.ECR_REPO_URL_FRONTEND }}"
+
       - name: Tag and push image to ECR
         run: |
           docker tag frontend-app:latest ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest
           docker push ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest
+          # Add echo statements to show what's happening
+          echo "Tagged frontend-app:latest as ${{ secrets.ECR_REPO_URL_FRONTEND }}:latest"
+          echo "Pushed to ECR"
+
+      - name: Verify ECR Push
+        run: |
+          echo "Listing images in ECR repository:"
+          aws ecr list-images --repository-name $(echo ${{ secrets.ECR_REPO_URL_FRONTEND }} | cut -d'/' -f2)
 
   deploy:
     name: Deploy to EKS
@@ -160,12 +174,6 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
 
-#      - name: Debug Kubeconfig
-#        run: |
-#          export KUBECONFIG=$HOME/.kube/config
-#          kubectl config view
-#          kubectl cluster-info
-
       - name: Ensure Namespace Exists
         run: |
           kubectl get namespace ${{ vars.EKS_NAMESPACE }}
@@ -179,6 +187,12 @@ jobs:
         run: |
           kubectl apply -f ./starter/frontend/k8s/deployment.yaml --namespace=${{ vars.EKS_NAMESPACE }}
           kubectl apply -f ./starter/frontend/k8s/service.yaml --namespace=${{ vars.EKS_NAMESPACE }}
+          kubectl rollout status deployment/frontend --namespace=${{ vars.EKS_NAMESPACE }}
+          
+          # Check pod image
+          echo "Checking pod image:"
+          kubectl get pods -n ${{ vars.EKS_NAMESPACE }} -l app=frontend -o jsonpath='{.items[*].spec.containers[*].image}'
+          
           kubectl rollout status deployment/frontend --namespace=${{ vars.EKS_NAMESPACE }}
 
       - name: Verify Deployment
