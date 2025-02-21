@@ -138,8 +138,12 @@ jobs:
 
       - name: Tag and push image to ECR
         run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
+          docker tag backend-app:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:${IMAGE_TAG}
           docker tag backend-app:latest ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+          docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:${IMAGE_TAG}
           docker push ${{ secrets.ECR_REPO_URL_BACKEND }}:latest
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> $GITHUB_ENV
 
   deploy:
     name: Deploy to EKS
@@ -168,7 +172,12 @@ jobs:
         run: |
           kubectl apply -f ./starter/backend/k8s/deployment.yaml --namespace=${{ vars.EKS_NAMESPACE }}
           kubectl apply -f ./starter/backend/k8s/service.yaml --namespace=${{ vars.EKS_NAMESPACE }}
-          kubectl rollout status deployment/backend --namespace=${{ vars.EKS_NAMESPACE }}
+          
+          IMAGE_TAG=${GITHUB_SHA::7}
+          kubectl set image deployment/backend backend=${{ secrets.ECR_REPO_URL_BACKEND }}:${IMAGE_TAG} -n ${{ vars.EKS_NAMESPACE }}
+          
+          kubectl rollout restart deployment backend -n ${{ vars.EKS_NAMESPACE }}
+          kubectl rollout status deployment/backend -n ${{ vars.EKS_NAMESPACE }}
 
       - name: Verify Deployment
         run: |
