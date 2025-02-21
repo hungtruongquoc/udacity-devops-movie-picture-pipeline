@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main  # Trigger on push to main branch
+    paths:
+      - 'starter/backend/**'  # Only trigger when files in backend folder change
+      - '.github/workflows/backend-cd.yml'
   workflow_dispatch:  # Allows manual execution
 
 jobs:

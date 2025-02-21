@@ -5,7 +5,14 @@ from flask_cors import CORS
 from .movies import movies_api
 
 app = Flask(__name__)
-CORS(app)
+# More explicit CORS configuration
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",  # In production, you might want to restrict this
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 app.register_blueprint(movies_api)
 
 # Start app
